@@ -4,8 +4,6 @@
 #include <string.h>
 #include <stdbool.h>
 
-
-
 %}
 
 COMANDO \<enter>
@@ -24,25 +22,25 @@ FLOAT ({INTEIRO}\<[.]\>{INTEIRO})
 %%
 
 {INTEIRO} 	{ 
-				printf(">número inteiro!\n");
+				printf("\n=>número inteiro!\n");
 				yylex(); 
 	      	}
 
 {FLOAT} 	{
-				printf(">número ponto fluatuante\n"); 
+				printf("\n=>número ponto fluatuante\n"); 
 			}
 
 
-{OP_UNARIO} { printf("operador unário!\n"); }
+{OP_UNARIO} { printf("\n=>operador unário!\n"); }
 
-{OP_BINARIO} { printf("operador binario!\n"); }
+{OP_BINARIO} { printf("\n=>operador binario!\n"); }
 
-{COMANDO} { printf(">comando\n"); }
+{COMANDO} { printf("\n=>comando\n"); }
 
 
 
 [[:space:]]+ ;
-[[:^space:]]+ { printf("erro\n"); };
+[[:^space:]]+ { printf("\n=>erro\n"); };
 
 %%
 
@@ -61,7 +59,7 @@ void regexp(char * input)
 
 bool is_digito(char c)
 {
-	return (c >= 48 && c <= 57);
+	return ((c >= 48 && c <= 57) || c == '.');
 }
 
 bool is_delimitador(char c)
@@ -69,35 +67,57 @@ bool is_delimitador(char c)
 	return (c == '<' || c == '>');
 }
 
+void print_str(char * str)
+{
+	int i;
+	for (i = 0; str[i] != '\0'; i++) {
+		if (!is_delimitador(str[i]))
+			printf("%c", str[i]);
+	}
+}
+
 void processar_string(char * input)
 {
 	int i, j;
-	char str[100];
-	bool especial = false;
+	char str[500];
+	bool inicio_comando = false, fim_comando = false, aguardo = false;
 
 	for (i = 0, j = 0; input[i] != '\0'; i++) {
+		
+		if ( !inicio_comando && ( (is_delimitador(input[i]) && is_digito(input[i + 1]) ) || is_digito(input[i]) || ( is_delimitador(input[i]) && is_delimitador(input[i + 1]) ) ) ) {
 
-		if (is_delimitador(input[i]) || is_digito(input[i])) {
-			if (input[i] == '<' && !is_digito(input[i + 1])) {
-				regexp(str);
-				j = 0;
-				especial = true;
-			}
 			str[j] = input[i];
 			str[j + 1] = '\0';
-
-			if (especial && input[i] == '>') regexp(str);
-
-			printf("%c, %d", input[i], i);
-			//especial = true;
-		} 
-		else {
-			//regexp(input);
+			j += 1;
+			aguardo = true;
+			
+		} else if (!fim_comando) {
+			printf("%s, %d\n", str, i);
+			if (aguardo) regexp(str);
+			j = 0;
 			str[j] = input[i];
-			printf("%c, %d :)", input[i], i);
+			str[j + 1] = '\0';
+			j += 1;
+			inicio_comando = true;
+			fim_comando = true;
+		} else if (fim_comando) {
+			str[j] = input[i];
+			str[j + 1] = '\0';
+			j += 1;
+
+			if (is_delimitador(input[i])) {
+				inicio_comando = false;
+				fim_comando = false;
+				regexp(str);
+				printf("%s, %d\n", str, i);
+				j = 0;
+				aguardo = false;
+			}
 		}
-		j += 1;
-		printf("\n");	
+	}
+	if (aguardo) {
+		regexp(str);
+		printf("%s, %d\n", str, i);
 	}
 }
 
@@ -108,12 +128,12 @@ int main(int argc, char** argv)
     char input[40];
 
     while (1) {
+    	printf("Entre com a expressão: ");
     	scanf("%s", input); //read sem tratamento
+    	printf("\n");
 
     	if (!strcmp(input, "sair")) break;
-    	else processar_string(input);
-    	break;
-
+    	else processar_string(input); 	
     }
 
 	return 0;
