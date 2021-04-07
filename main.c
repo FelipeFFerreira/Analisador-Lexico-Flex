@@ -1,5 +1,5 @@
 
-#line 3 "lex.yy.c"
+#line 3 "<stdout>"
 
 #define  YY_INT_ALIGNED short int
 
@@ -460,19 +460,20 @@ int yy_flex_debug = 0;
 #define YY_MORE_ADJ 0
 #define YY_RESTORE_YY_MORE_OFFSET
 char *yytext;
-#line 1 "demo.l"
-#line 2 "demo.l"
+#line 1 "main.l"
+#line 2 "main.l"
 
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
 
 char str[500];
+static int id_token;
 
 void print_str(char * str, char * msg);
 
-#line 475 "lex.yy.c"
-#line 476 "lex.yy.c"
+#line 476 "<stdout>"
+#line 477 "<stdout>"
 
 #define INITIAL 0
 
@@ -689,10 +690,10 @@ YY_DECL
 		}
 
 	{
-#line 26 "demo.l"
+#line 28 "main.l"
 
 
-#line 696 "lex.yy.c"
+#line 697 "<stdout>"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -751,35 +752,35 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 28 "demo.l"
+#line 30 "main.l"
 { 
 					print_str(str, "número inteiro!");
 	      		}
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 32 "demo.l"
+#line 34 "main.l"
 {
 					print_str(str, "número tipo float") ;
 				}
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 37 "demo.l"
+#line 39 "main.l"
 { 
 					print_str(str, "operador unário!"); 
 				}
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 41 "demo.l"
+#line 43 "main.l"
 { 	
 					print_str(str, "operador binario!"); 
 				}
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 45 "demo.l"
+#line 47 "main.l"
 { 
 			  		print_str(str, "comando detectado!"); 
 				}
@@ -787,22 +788,22 @@ YY_RULE_SETUP
 case 6:
 /* rule 6 can match eol */
 YY_RULE_SETUP
-#line 49 "demo.l"
+#line 51 "main.l"
 ;
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 51 "demo.l"
+#line 53 "main.l"
 { 
 					print_str(str, "erro"); 
 				};
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 54 "demo.l"
+#line 56 "main.l"
 ECHO;
 	YY_BREAK
-#line 806 "lex.yy.c"
+#line 807 "<stdout>"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -1807,9 +1808,14 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 54 "demo.l"
+#line 56 "main.l"
 
 
+/*
+ * Param: string; Return: void;
+ * Bloco responsavel por enviar a string para ser feito a analise lexica
+ * utilizando expressões regulares definidas pelo flex.
+*/ 
 void regexp(char * input)
 {
 	/*Copy string into new buffer and Switch buffers*/
@@ -1822,27 +1828,43 @@ void regexp(char * input)
     yy_delete_buffer(YY_CURRENT_BUFFER);
 }
 
-bool is_digito(char c)
+/*
+ * Param: caracter; Return: bool;
+ * Bloco responsavel por validar as substrings digitas na entrada,
+ * O programa recebe uma ou varias expressoes em um unico buffer de entrada.
+*/ 
+bool is_valido(char c)
 {
 	return ((c >= 48 && c <= 57) || c == '.');
 }
 
+
+/*
+ * Param: caracter; Return: bool;
+ * Bloco responsavel por validar as substrings digitas na entrada,
+ * delimitadas pelo caracter "delimitador da expresso posfixa"
+*/ 
 bool is_delimitador(char c)
 {
 	return (c == '<' || c == '>');
 }
 
+/*
+ * Param: caracter; Return: bool;
+ * Bloco responsavel imprimir na tela os tokens formados
+ * pelas regras das expressoes regulares definidas no flex.
+*/ 
 void print_str(char * str, char * msg)
 {
 	int i;
-	static int id = 0;
 	printf("Token reconhecido: [ ");
 	for (i = 0; str[i] != '\0'; i++) {
 		if (!is_delimitador(str[i]))
 			printf("%c", str[i]);
 	}
-	printf(" ]\tTipo do Token: [ %s ]\tidatrr: [ %d ]\n\n", msg, ++id);
+	printf(" ]\tTipo do Token: [ %s ]\tidatrr: [ %d ]\n\n", msg, ++id_token);
 }
+
 
 void processar_string(char * input)
 {
@@ -1851,7 +1873,7 @@ void processar_string(char * input)
 
 	for (i = 0, j = 0; input[i] != '\0'; i++) {
 		
-		if ( !inicio_comando && ( (is_delimitador(input[i]) && is_digito(input[i + 1]) ) || is_digito(input[i]) || ( is_delimitador(input[i]) && is_delimitador(input[i + 1]) ) ) || input[i + 1] == '\0' ) {
+		if ( !inicio_comando && ( (is_delimitador(input[i]) && is_valido(input[i + 1]) ) || is_valido(input[i]) || ( is_delimitador(input[i]) && is_delimitador(input[i + 1]) ) ) || input[i + 1] == '\0' ) {
 
 			str[j] = input[i];
 			str[j + 1] = '\0';
@@ -1892,7 +1914,8 @@ int main(int argc, char** argv)
     char input[40];
 
     while (1) {
-    	printf("Entre com a expressão: ");
+    	id_token = 0;
+    	printf("Entre com a expressão[digite: \"sair\" para encerrar]: ");
     	scanf("%s", input); //read sem tratamento
     	printf("\n");
 

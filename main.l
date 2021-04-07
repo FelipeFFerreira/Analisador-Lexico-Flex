@@ -11,6 +11,7 @@ void print_str(char * str, char * msg);
 
 %}
 
+
 COMANDO \<enter>
 
 DIGITO [0-9]
@@ -54,6 +55,11 @@ FLOAT ({INTEIRO}\<[.]\>{INTEIRO})
 				};
 %%
 
+/*
+ * Param: string; Return: void;
+ * Bloco responsavel por enviar a string para ser feito a analise lexica
+ * utilizando expressões regulares definidas pelo flex.
+*/ 
 void regexp(char * input)
 {
 	/*Copy string into new buffer and Switch buffers*/
@@ -66,16 +72,32 @@ void regexp(char * input)
     yy_delete_buffer(YY_CURRENT_BUFFER);
 }
 
-bool is_digito(char c)
+/*
+ * Param: caracter; Return: bool;
+ * Bloco responsavel por validar as substrings digitas na entrada,
+ * O programa recebe uma ou varias expressoes em um unico buffer de entrada.
+*/ 
+bool is_valido(char c)
 {
 	return ((c >= 48 && c <= 57) || c == '.');
 }
 
+
+/*
+ * Param: caracter; Return: bool;
+ * Bloco responsavel por validar as substrings digitas na entrada,
+ * delimitadas pelo caracter "delimitador da expresso posfixa"
+*/ 
 bool is_delimitador(char c)
 {
 	return (c == '<' || c == '>');
 }
 
+/*
+ * Param: caracter; Return: bool;
+ * Bloco responsavel imprimir na tela os tokens formados
+ * pelas regras das expressoes regulares definidas no flex.
+*/ 
 void print_str(char * str, char * msg)
 {
 	int i;
@@ -87,6 +109,7 @@ void print_str(char * str, char * msg)
 	printf(" ]\tTipo do Token: [ %s ]\tidatrr: [ %d ]\n\n", msg, ++id_token);
 }
 
+
 void processar_string(char * input)
 {
 	int i, j;
@@ -94,7 +117,7 @@ void processar_string(char * input)
 
 	for (i = 0, j = 0; input[i] != '\0'; i++) {
 		
-		if ( !inicio_comando && ( (is_delimitador(input[i]) && is_digito(input[i + 1]) ) || is_digito(input[i]) || ( is_delimitador(input[i]) && is_delimitador(input[i + 1]) ) ) || input[i + 1] == '\0' ) {
+		if ( !inicio_comando && ( (is_delimitador(input[i]) && is_valido(input[i + 1]) ) || is_valido(input[i]) || ( is_delimitador(input[i]) && is_delimitador(input[i + 1]) ) ) || input[i + 1] == '\0' ) {
 
 			str[j] = input[i];
 			str[j + 1] = '\0';
