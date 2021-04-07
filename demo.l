@@ -30,7 +30,7 @@ FLOAT ({INTEIRO}\<[.]\>{INTEIRO})
 	      		}
 
 {FLOAT} 		{
-					print_str(str, "número ponto fluatuante") ;
+					print_str(str, "número tipo float") ;
 				}
 
 
@@ -43,7 +43,7 @@ FLOAT ({INTEIRO}\<[.]\>{INTEIRO})
 				}
 
 {COMANDO} 		{ 
-			  		print_str(str, "comando!"); 
+			  		print_str(str, "comando detectado!"); 
 				}
 
 [[:space:]]+ ;
@@ -84,7 +84,7 @@ void print_str(char * str, char * msg)
 		if (!is_delimitador(str[i]))
 			printf("%c", str[i]);
 	}
-	printf(" ]\tTipo do Token: [ %s ]\t\tidatrr: [ %d ]\n\n", msg, ++id);
+	printf(" ]\tTipo do Token: [ %s ]\tidatrr: [ %d ]\n\n", msg, ++id);
 }
 
 void processar_string(char * input)
