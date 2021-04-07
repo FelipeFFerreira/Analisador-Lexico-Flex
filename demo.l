@@ -4,6 +4,10 @@
 #include <string.h>
 #include <stdbool.h>
 
+char str[500];
+
+void print_str(char * str, char * msg);
+
 %}
 
 COMANDO \<enter>
@@ -21,27 +25,32 @@ FLOAT ({INTEIRO}\<[.]\>{INTEIRO})
 
 %%
 
-{INTEIRO} 	{ 
-				printf("\n=>número inteiro!\n");
-				yylex(); 
-	      	}
+{INTEIRO} 		{ 
+					print_str(str, "número inteiro!");
+	      		}
 
-{FLOAT} 	{
-				printf("\n=>número ponto fluatuante\n"); 
-			}
-
-
-{OP_UNARIO} { printf("\n=>operador unário!\n"); }
-
-{OP_BINARIO} { printf("\n=>operador binario!\n"); }
-
-{COMANDO} { printf("\n=>comando\n"); }
+{FLOAT} 		{
+					print_str(str, "número ponto fluatuante") ;
+				}
 
 
+{OP_UNARIO} 	{ 
+					print_str(str, "operador unário!"); 
+				}
+
+{OP_BINARIO} 	{ 	
+					print_str(str, "operador binario!"); 
+				}
+
+{COMANDO} 		{ 
+			  		print_str(str, "comando!"); 
+				}
 
 [[:space:]]+ ;
-[[:^space:]]+ { printf("\n=>erro\n"); };
 
+[[:^space:]]+ 	{ 
+					print_str(str, "erro"); 
+				};
 %%
 
 void regexp(char * input)
@@ -54,7 +63,6 @@ void regexp(char * input)
 
 	/*Delete the new buffer*/
     yy_delete_buffer(YY_CURRENT_BUFFER);
-
 }
 
 bool is_digito(char c)
@@ -67,24 +75,26 @@ bool is_delimitador(char c)
 	return (c == '<' || c == '>');
 }
 
-void print_str(char * str)
+void print_str(char * str, char * msg)
 {
 	int i;
+	static int id = 0;
+	printf("Token reconhecido: [ ");
 	for (i = 0; str[i] != '\0'; i++) {
 		if (!is_delimitador(str[i]))
 			printf("%c", str[i]);
 	}
+	printf(" ]\tTipo do Token: [ %s ]\t\tidatrr: [ %d ]\n\n", msg, ++id);
 }
 
 void processar_string(char * input)
 {
 	int i, j;
-	char str[500];
 	bool inicio_comando = false, fim_comando = false, aguardo = false;
 
 	for (i = 0, j = 0; input[i] != '\0'; i++) {
 		
-		if ( !inicio_comando && ( (is_delimitador(input[i]) && is_digito(input[i + 1]) ) || is_digito(input[i]) || ( is_delimitador(input[i]) && is_delimitador(input[i + 1]) ) ) ) {
+		if ( !inicio_comando && ( (is_delimitador(input[i]) && is_digito(input[i + 1]) ) || is_digito(input[i]) || ( is_delimitador(input[i]) && is_delimitador(input[i + 1]) ) ) || input[i + 1] == '\0' ) {
 
 			str[j] = input[i];
 			str[j + 1] = '\0';
@@ -92,7 +102,6 @@ void processar_string(char * input)
 			aguardo = true;
 			
 		} else if (!fim_comando) {
-			printf("%s, %d\n", str, i);
 			if (aguardo) regexp(str);
 			j = 0;
 			str[j] = input[i];
@@ -109,7 +118,6 @@ void processar_string(char * input)
 				inicio_comando = false;
 				fim_comando = false;
 				regexp(str);
-				printf("%s, %d\n", str, i);
 				j = 0;
 				aguardo = false;
 			}
@@ -117,7 +125,6 @@ void processar_string(char * input)
 	}
 	if (aguardo) {
 		regexp(str);
-		printf("%s, %d\n", str, i);
 	}
 }
 
