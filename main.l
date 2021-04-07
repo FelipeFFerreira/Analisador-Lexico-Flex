@@ -5,6 +5,7 @@
 #include <stdbool.h>
 
 char str[500];
+static int id_token;
 
 void print_str(char * str, char * msg);
 
@@ -78,13 +79,12 @@ bool is_delimitador(char c)
 void print_str(char * str, char * msg)
 {
 	int i;
-	static int id = 0;
 	printf("Token reconhecido: [ ");
 	for (i = 0; str[i] != '\0'; i++) {
 		if (!is_delimitador(str[i]))
 			printf("%c", str[i]);
 	}
-	printf(" ]\tTipo do Token: [ %s ]\tidatrr: [ %d ]\n\n", msg, ++id);
+	printf(" ]\tTipo do Token: [ %s ]\tidatrr: [ %d ]\n\n", msg, ++id_token);
 }
 
 void processar_string(char * input)
@@ -135,7 +135,8 @@ int main(int argc, char** argv)
     char input[40];
 
     while (1) {
-    	printf("Entre com a expressão: ");
+    	id_token = 0;
+    	printf("Entre com a expressão[digite: \"sair\" para encerrar]: ");
     	scanf("%s", input); //read sem tratamento
     	printf("\n");
 
