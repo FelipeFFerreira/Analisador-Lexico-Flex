@@ -5,7 +5,7 @@ TÍTULO:	Analisador léxico, utilizando o flex por meio de expressões regulares
 
 ********************************************************************************************
 DESCRIÇÃO:
-		Este código tem como intuito demonbuffer_entradaar o uso de um analisador léxico, abordada
+		Este código tem como intuito demonstrar o uso de um analisador léxico, abordada
 		a teoria na disciplina de compiladores, no qual ira tentar formar tokens 
 		reconhecidos pela linguagem, independente do seu significado semântico. Para maior 
 		riqueza em detalhes, por favor consultar o arquivo "documentacao.txt".
@@ -25,7 +25,7 @@ AUTORES: Felipe Ferreira, Gabriel Romano, Jaime Mathias
 /* 
 * ** Utilizar essa área para criação de variaveis públicas  **
 */
-char buffer_entrada[500]; // buffer utilizado para captura entrada da expressão no terminal.
+char buffer_entrada[500]; // buffer utilizado para capturar entrada da expressão no terminal.
 
 /* 
 * ** Utilizar essa área para criação de variaveis privadas **
@@ -90,10 +90,9 @@ FLOAT ({INTEIRO}\<[.]\>{INTEIRO})
 */
 
 /*
- * Param: buffer_entradaing; Return: void;
+ * Param: string; Return: void;
  * Bloco responsavel por enviar o buffer capturado no terminal para 
- * ser feito a analise lexica utilizando expressões regulares 
- * definidas pelo flex.
+ * ser feito a analise lexica utilizando as expressões regulares definidas pelo flex.
 */ 
 static void regexp(char * input)
 {
@@ -107,8 +106,7 @@ static void regexp(char * input)
 
 /*
  * Param: caracter; Return: bool;
- * Bloco responsavel por validar os caracteres pertencente ao alfabeto
- * digitas na entrada.
+ * Bloco responsavel por validar os caracteres pertencente ao alfabeto da linguagen.
  * O programa recebe uma ou varias expressoes em um unico buffer de entrada.
 */ 
 static bool is_valido(char c)
@@ -149,7 +147,7 @@ static void processar_buffer(char * input)
 			aguardo = true;
 			
 		} else if (!fim_comando) {
-			if (aguardo) regexp(buffer_entrada);
+			if (aguardo) regexp(buffer_entrada); //enviar o buffer, para analise das expressões regulares definidas no flex
 			j = 0;
 			buffer_entrada[j] = input[i];
 			buffer_entrada[j + 1] = '\0';
@@ -164,14 +162,14 @@ static void processar_buffer(char * input)
 			if (is_delimitador(input[i])) {
 				inicio_comando = false;
 				fim_comando = false;
-				regexp(buffer_entrada);
+				regexp(buffer_entrada); //enviar o buffer, para analise das expressões regulares defini
 				j = 0;
 				aguardo = false;
 			}
 		}
 	}
 	if (aguardo) {
-		regexp(buffer_entrada);
+		regexp(buffer_entrada); //enviar o buffer, para analise das expressões regulares defini
 	}
 }
 
