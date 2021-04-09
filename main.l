@@ -8,7 +8,7 @@ DESCRIÇÃO:
 		Este código tem como intuito demonstrar o uso de um analisador léxico, abordada
 		a teoria na disciplina de compiladores, no qual ira tentar formar tokens 
 		reconhecidos pela linguagem, independente do seu significado semântico. Para maior 
-		riqueza em detalhes, por favor consultar o arquivo "documentacao.txt".
+		riqueza em detalhes, por favor consultar o arquivo "documentacao.docx".
 ********************************************************************************************
 
 ********************************************************************************************
@@ -25,26 +25,31 @@ AUTORES: Felipe Ferreira, Gabriel Romano, Jaime Mathias
 /* 
 * ** Utilizar essa área para criação de variaveis públicas  **
 */
+
 char buffer_entrada[500]; // buffer utilizado para capturar entrada da expressão no terminal.
 
 /* 
 * ** Utilizar essa área para criação de variaveis privadas **
 */
+
 static int id_token;	 //variavel para controle dos tokens formados.
 
 
 /*
 * ** Prototipos de funcoes publicas **;
 */
-void print_token(char * buffer_entrada, char * msg); //prototipo função para imprimir na tela um token
+void print_token(char * buffer_entrada, char * msg); //prototipo de função para imprimir na tela um token reconhecido
 
 %}
 
 
 /*
-* ***** Seção de DEFINIÇÕES *****
-*    Utilize a área abaixo para definição das palavras
-*    reconhecidas pela linguagem.
+********************************************************************************************
+* 				************ SEÇÃO DE DEFINIÇÕES ************
+* Definições das expressões regulares que serão utilizadas pelo flex para validação léxica
+* das palavras de entrada capturadas pelo buffer. 
+* Utilize a área abaixo para definição das palavras reconhecidas pela linguagem.
+* *******************************************************************************************   
 */
 
 COMANDO \<enter>
@@ -91,27 +96,33 @@ FLOAT ({INTEIRO}\<[.]\>{INTEIRO})
 %%
 
 
-/* 
-* ** Utilizar essa área para a implementação das funções privadas **
+/*
+********************************************************************************************
+* 				************ SEÇÃO DE IMPLEMENTAÇÃO DAS FUNÇOES PRIVADAS ************
+* Implementações das funções privadas.
+* Utilize a área abaixo para a implementação das funções privadas.
+* ******************************************************************************************
 */
 
 /*
- * Param: string; Return: void;
+ * @Param: string; Return: void;
  * Bloco responsavel por enviar o buffer capturado no terminal para 
  * ser feito a analise lexica utilizando as expressões regulares definidas pelo flex.
 */ 
 static void regexp(char * input)
 {
+	/*Obtem o novo buffer*/
 	yy_scan_string(input);
 
 	/*Analiza a string*/
 	yylex();
 
+	/*Desaloca o buffer*/
     yy_delete_buffer(YY_CURRENT_BUFFER);
 }
 
 /*
- * Param: caracter; Return: bool;
+ * @Param: caracter; Return: bool;
  * Bloco responsavel por validar os caracteres pertencente ao alfabeto da linguagen.
  * O programa recebe uma ou varias expressoes em um unico buffer de entrada.
 */ 
@@ -121,7 +132,7 @@ static bool is_valido(char c)
 }
 
 /*
- * Param: caracter; Return: bool;
+ * @Param: caracter; Return: bool;
  * Bloco responsavel por validar as "n" expressões capturadas na entrada
  * delimitadas pelo simbolo "delimitador" pertencente ao alfabeto
 */ 
@@ -131,10 +142,11 @@ static bool is_delimitador(char c)
 }
 
 /*
- * Param: string; Return: void;
+ * @Param: string; Return: void;
  * Bloco responsavel pela simulação do controle da fita de entrada
- * alterando em uma maquina de 3 estados afim de reconhecer as delimitações das
- * "n" expressões capturadas no buffer.
+ * alterando em uma maquina de 3 estados, afim de reconhecer as delimitações das
+ * "n" expressões capturadas no buffer. Também por enviar para o flex, processar as expressões
+ *  regulares definidas na seção definição.
 */ 
 static void processar_buffer(char * input)
 {
@@ -179,13 +191,17 @@ static void processar_buffer(char * input)
 	}
 }
 
-/* 
-* ** Utilizar essa área para a implementação das funções públicas **
+/*
+********************************************************************************************
+* 				************ SEÇÃO DE IMPLEMENTAÇÃO DAS FUNÇOES PÚBLICAS ************
+* Implementações das funções públicas.
+* Utilize a área abaixo para a implementação das funções públicas.
+* ******************************************************************************************
 */
 
 /*
- * Param: caracter; Return: bool;
- * Bloco responsavel imprimir na tela os tokens formados
+ * @Param: string, caracter; Return: bool;
+ * Bloco responsavel por imprimir na tela os tokens formados
  * pelas regras das expressoes regulares definidas no flex.
 */ 
 void print_token(char * buffer_entrada, char * msg)
