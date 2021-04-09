@@ -461,19 +461,47 @@ int yy_flex_debug = 0;
 #define YY_RESTORE_YY_MORE_OFFSET
 char *yytext;
 #line 1 "main.l"
-#line 2 "main.l"
+/*
+********************************************************************************************
+TÍTULO:	Analisador léxico, utilizando o flex por meio de expressões regulares.
+********************************************************************************************
+
+********************************************************************************************
+DESCRIÇÃO:
+		Este código tem como intuito demonbuffer_entradaar o uso de um analisador léxico, abordada
+		a teoria na disciplina de compiladores, no qual ira tentar formar tokens 
+		reconhecidos pela linguagem, independente do seu significado semântico. Para maior 
+		riqueza em detalhes, por favor consultar o arquivo "documentacao.txt".
+********************************************************************************************
+
+********************************************************************************************
+AUTORES: Felipe Ferreira, Gabriel Romano, Jaime Mathias
+********************************************************************************************
+*/
+#line 20 "main.l"
 
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
 
-char str[500];
-static int id_token;
+/* 
+* ** Utilizar essa área para criação de variaveis públicas  **
+*/
+char buffer_entrada[500]; // buffer utilizado para captura entrada da expressão no terminal.
 
-void print_str(char * str, char * msg);
+/* 
+* ** Utilizar essa área para criação de variaveis privadas **
+*/
+static int id_token;	 //variavel para controle dos tokens formados.
 
-#line 476 "<stdout>"
-#line 477 "<stdout>"
+
+/*
+* ** Prototipos de funcoes publicas **;
+*/
+void print_token(char * buffer_entrada, char * msg); //prototipo função para imprimir na tela um token
+
+#line 504 "<stdout>"
+#line 505 "<stdout>"
 
 #define INITIAL 0
 
@@ -690,10 +718,10 @@ YY_DECL
 		}
 
 	{
-#line 28 "main.l"
+#line 57 "main.l"
 
 
-#line 697 "<stdout>"
+#line 725 "<stdout>"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -752,58 +780,58 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 30 "main.l"
+#line 59 "main.l"
 { 
-					print_str(str, "número inteiro!");
+					print_token(buffer_entrada, "número inteiro!");
 	      		}
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 34 "main.l"
+#line 63 "main.l"
 {
-					print_str(str, "número tipo float") ;
+					print_token(buffer_entrada, "número tipo float") ;
 				}
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 39 "main.l"
+#line 68 "main.l"
 { 
-					print_str(str, "operador unário!"); 
+					print_token(buffer_entrada, "operador unário!"); 
 				}
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 43 "main.l"
+#line 72 "main.l"
 { 	
-					print_str(str, "operador binario!"); 
+					print_token(buffer_entrada, "operador binario!"); 
 				}
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 47 "main.l"
+#line 76 "main.l"
 { 
-			  		print_str(str, "comando detectado!"); 
+			  		print_token(buffer_entrada, "comando detectado!"); 
 				}
 	YY_BREAK
 case 6:
 /* rule 6 can match eol */
 YY_RULE_SETUP
-#line 51 "main.l"
+#line 80 "main.l"
 ;
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 53 "main.l"
+#line 82 "main.l"
 { 
-					print_str(str, "erro"); 
+					print_token(buffer_entrada, "erro"); 
 				};
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 56 "main.l"
+#line 85 "main.l"
 ECHO;
 	YY_BREAK
-#line 807 "<stdout>"
+#line 835 "<stdout>"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -1808,105 +1836,119 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 56 "main.l"
+#line 85 "main.l"
 
+
+
+/* 
+* ** Utilizar essa área para a implementação das funções privadas **
+*/
 
 /*
- * Param: string; Return: void;
- * Bloco responsavel por enviar a string para ser feito a analise lexica
- * utilizando expressões regulares definidas pelo flex.
+ * Param: buffer_entradaing; Return: void;
+ * Bloco responsavel por enviar o buffer capturado no terminal para 
+ * ser feito a analise lexica utilizando expressões regulares 
+ * definidas pelo flex.
 */ 
-void regexp(char * input)
+static void regexp(char * input)
 {
-	/*Copy string into new buffer and Switch buffers*/
 	yy_scan_string(input);
 
-	/*Analyze the string*/
+	/*Analiza a string*/
 	yylex();
 
-	/*Delete the new buffer*/
     yy_delete_buffer(YY_CURRENT_BUFFER);
 }
 
 /*
  * Param: caracter; Return: bool;
- * Bloco responsavel por validar as substrings digitas na entrada,
+ * Bloco responsavel por validar os caracteres pertencente ao alfabeto
+ * digitas na entrada.
  * O programa recebe uma ou varias expressoes em um unico buffer de entrada.
 */ 
-bool is_valido(char c)
+static bool is_valido(char c)
 {
 	return ((c >= 48 && c <= 57) || c == '.');
 }
 
-
 /*
  * Param: caracter; Return: bool;
- * Bloco responsavel por validar as substrings digitas na entrada,
- * delimitadas pelo caracter "delimitador da expresso posfixa"
+ * Bloco responsavel por validar as "n" expressões capturadas na entrada
+ * delimitadas pelo simbolo "delimitador" pertencente ao alfabeto
 */ 
-bool is_delimitador(char c)
+static bool is_delimitador(char c)
 {
 	return (c == '<' || c == '>');
 }
 
 /*
- * Param: caracter; Return: bool;
- * Bloco responsavel imprimir na tela os tokens formados
- * pelas regras das expressoes regulares definidas no flex.
+ * Param: string; Return: void;
+ * Bloco responsavel pela simulação do controle da fita de entrada
+ * alterando em uma maquina de 3 estados afim de reconhecer as delimitações das
+ * "n" expressões capturadas no buffer.
 */ 
-void print_str(char * str, char * msg)
-{
-	int i;
-	printf("Token reconhecido: [ ");
-	for (i = 0; str[i] != '\0'; i++) {
-		if (!is_delimitador(str[i]))
-			printf("%c", str[i]);
-	}
-	printf(" ]\tTipo do Token: [ %s ]\tidatrr: [ %d ]\n\n", msg, ++id_token);
-}
-
-
-void processar_string(char * input)
+static void processar_buffer(char * input)
 {
 	int i, j;
 	bool inicio_comando = false, fim_comando = false, aguardo = false;
 
 	for (i = 0, j = 0; input[i] != '\0'; i++) {
 		
-		if ( !inicio_comando && ( (is_delimitador(input[i]) && is_valido(input[i + 1]) ) || is_valido(input[i]) || ( is_delimitador(input[i]) && is_delimitador(input[i + 1]) ) ) || input[i + 1] == '\0' ) {
+		if ( !inicio_comando && ( (is_delimitador(input[i]) && is_valido(input[i + 1]) ) ||
+			 is_valido(input[i]) || ( is_delimitador(input[i]) && is_delimitador(input[i + 1]))) ||
+			 input[i + 1] == '\0' ) {
 
-			str[j] = input[i];
-			str[j + 1] = '\0';
+			buffer_entrada[j] = input[i];
+			buffer_entrada[j + 1] = '\0';
 			j += 1;
 			aguardo = true;
 			
 		} else if (!fim_comando) {
-			if (aguardo) regexp(str);
+			if (aguardo) regexp(buffer_entrada);
 			j = 0;
-			str[j] = input[i];
-			str[j + 1] = '\0';
+			buffer_entrada[j] = input[i];
+			buffer_entrada[j + 1] = '\0';
 			j += 1;
 			inicio_comando = true;
 			fim_comando = true;
 		} else if (fim_comando) {
-			str[j] = input[i];
-			str[j + 1] = '\0';
+			buffer_entrada[j] = input[i];
+			buffer_entrada[j + 1] = '\0';
 			j += 1;
 
 			if (is_delimitador(input[i])) {
 				inicio_comando = false;
 				fim_comando = false;
-				regexp(str);
+				regexp(buffer_entrada);
 				j = 0;
 				aguardo = false;
 			}
 		}
 	}
 	if (aguardo) {
-		regexp(str);
+		regexp(buffer_entrada);
 	}
 }
 
+/* 
+* ** Utilizar essa área para a implementação das funções públicas **
+*/
+
+/*
+ * Param: caracter; Return: bool;
+ * Bloco responsavel imprimir na tela os tokens formados
+ * pelas regras das expressoes regulares definidas no flex.
+*/ 
+void print_token(char * buffer_entrada, char * msg)
+{
+	int i;
+	printf("Token reconhecido: [ ");
+	for (i = 0; buffer_entrada[i] != '\0'; i++) {
+		if (!is_delimitador(buffer_entrada[i]))
+			printf("%c", buffer_entrada[i]);
+	}
+	printf(" ]\tTipo do Token: [ %s ]\tidatrr: [ %d ]\n\n", msg, ++id_token);
+}
 
 int main(int argc, char** argv) 
 {
@@ -1920,7 +1962,7 @@ int main(int argc, char** argv)
     	printf("\n");
 
     	if (!strcmp(input, "sair")) break;
-    	else processar_string(input); 	
+    	else processar_buffer(input); 	
     }
 
 	return 0;
