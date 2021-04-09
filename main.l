@@ -41,6 +41,12 @@ void print_token(char * buffer_entrada, char * msg); //prototipo função para i
 %}
 
 
+/*
+* ***** Seção de DEFINIÇÕES *****
+*    Utilize a área abaixo para definição das palavras
+*    reconhecidas pela linguagem.
+*/
+
 COMANDO \<enter>
 
 DIGITO [0-9]
