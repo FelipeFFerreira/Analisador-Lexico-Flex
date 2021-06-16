@@ -21,12 +21,22 @@ AUTORES: Felipe Ferreira, Gabriel Romano, Jaime Mathias
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
+#include "pilha.h"
 
 /* 
 * ** Utilizar essa área para criação de variaveis públicas  **
 */
 
-char buffer_entrada[500]; // buffer utilizado para capturar entrada da expressão no terminal.
+#define TERMINAL_DIGIT 0
+#define TERMINAL_OP_BINARIO 1
+#define TERMINAL_OP_UNARIO 2
+#define ERROR_LEXICO false
+
+char buffer_entrada[500]; // buffer utilizado para capturar entrada da expressão no terminal
+unsigned int buffer_saida[500], ptr_entrada = 0;
+bool STATE_ERROR = true;
+
+
 
 /* 
 * ** Utilizar essa área para criação de variaveis privadas **
@@ -38,8 +48,8 @@ static int id_token;	 //variavel para controle dos tokens formados.
 /*
 * ** Prototipos de funcoes publicas **;
 */
-void print_token(char * buffer_entrada, char * msg); //prototipo de função para imprimir na tela um token reconhecido
-
+void print_token(char * buffer_entrada, char * msg, char * type_terminal); //prototipo de função para imprimir na tela um token reconhecido
+int aval_postfixa(const int * buffer_saida);
 %}
 
 
@@ -57,9 +67,9 @@ COMANDO \<enter>
 DIGITO [0-9]
 
 
-OP_UNARIO  \<(\cos|\sen|\log|\^)\>
+OP_UNARIO  \<(\cos|\sen|\log)\>
 
-OP_BINARIO \<(\+|\-|\*|\/)\>
+OP_BINARIO \<(\+|\-|\*|\/|\^)\>
 
 INTEIRO (\<({DIGITO}+)\>)+
 
@@ -68,30 +78,30 @@ FLOAT ({INTEIRO}\<[.]\>{INTEIRO})
 %%
 
 {INTEIRO} 		{ 
-					print_token(buffer_entrada, "número inteiro!");
+					print_token(buffer_entrada, "número inteiro!", "terminal_digit");
 	      		}
 
 {FLOAT} 		{
-					print_token(buffer_entrada, "número tipo float") ;
+					print_token(buffer_entrada, "número tipo float", "terminal_digit") ;
 				}
 
 
 {OP_UNARIO} 	{ 
-					print_token(buffer_entrada, "operador unário!"); 
+					print_token(buffer_entrada, "operador unário!", "terminal_op_unario"); 
 				}
 
 {OP_BINARIO} 	{ 	
-					print_token(buffer_entrada, "operador binario!"); 
+					print_token(buffer_entrada, "operador binario!", "terminal_op_binario"); 
 				}
 
 {COMANDO} 		{ 
-			  		print_token(buffer_entrada, "comando detectado!"); 
+			  		print_token(buffer_entrada, "comando detectado!", "terminal_lambda"); 
 				}
 
 [[:space:]]+ ;
 
 [[:^space:]]+ 	{ 
-					print_token(buffer_entrada, "erro"); 
+					print_token(buffer_entrada, "erro" , "invalid"); 
 				};
 %%
 
@@ -199,20 +209,47 @@ static void processar_buffer(char * input)
 * ******************************************************************************************
 */
 
+
+void print_buffer(unsigned int * bf)
+{
+
+	for (int i = 0; bf[i] != '$'; i++)
+		printf("%d. %d\n", i, bf[i]); 
+}
+
+bool is_simbolo_terminal(char * simbolo)
+{
+	if (strcmp(simbolo, "terminal_digit") == 0)  buffer_saida[ptr_entrada++] =  TERMINAL_DIGIT;
+	else if (strcmp(simbolo, "terminal_op_binario") == 0) buffer_saida[ptr_entrada++]= TERMINAL_OP_BINARIO;
+	else if (strcmp(simbolo, "terminal_op_unario") == 0) buffer_saida[ptr_entrada++] = TERMINAL_OP_UNARIO;
+	else if (strcmp(simbolo, "invalid") == 0) STATE_ERROR = ERROR_LEXICO;
+
+	//printf("Simbolo : %s ;  Buffer[%d] = %d\n", simbolo, ptr_entrada, buffer_saida[ptr_entrada]);
+
+	buffer_saida[ptr_entrada] = '$';
+
+}
+
+
 /*
  * @Param: string, caracter; Return: bool;
  * Bloco responsavel por imprimir na tela os tokens formados
  * pelas regras das expressoes regulares definidas no flex.
 */ 
-void print_token(char * buffer_entrada, char * msg)
+void print_token(char * buffer_entrada, char * msg, char * simbolo)
 {
 	int i;
+	
 	printf("Token reconhecido: [ ");
 	for (i = 0; buffer_entrada[i] != '\0'; i++) {
 		if (!is_delimitador(buffer_entrada[i]))
 			printf("%c", buffer_entrada[i]);
+			
+			//buffer_saida[ptr_entrada++] = '$';
 	}
 	printf(" ]\tTipo do Token: [ %s ]\tidatrr: [ %d ]\n\n", msg, ++id_token);
+	
+	if (is_simbolo_terminal(simbolo));
 }
 
 int main(int argc, char** argv) 
@@ -221,14 +258,65 @@ int main(int argc, char** argv)
     char input[40];
 
     while (1) {
-    	id_token = 0;
-    	printf("Entre com a expressão[digite: \"sair\" para encerrar]: ");
-    	scanf("%s", input); //read sem tratamento
-    	printf("\n");
+		id_token = 0;
+		ptr_entrada = 0;
+		STATE_ERROR = true;
 
-    	if (!strcmp(input, "sair")) break;
-    	else processar_buffer(input); 	
+		printf("Entre com a expressão[digite: \"sair\" para encerrar]: ");
+		scanf("%s", input); //read sem tratamento
+		printf("\n");
+
+		if (!strcmp(input, "sair")) break;
+		
+		processar_buffer(input); 
+		//print_buffer(buffer_saida);
+
+		if (STATE_ERROR) {
+			printf("Lexico Correto\n\n");
+			aval_postfixa(buffer_saida);
+		} else {
+			printf("Lexico Incorreto\n\n");
+		}
+
+	}
+		return 0;
+}
+
+
+int aval_postfixa(const int * buffer_saida)
+{
+    pilha p;
+    int i = 0, x, y;
+    stack_init(&p);
+
+    while (buffer_saida[i] != '$') {
+        if (buffer_saida[i] == 0) {
+            push(&p, 1);
+            i++;
+        }
+        else {
+            switch(buffer_saida[i]) {
+                case 1:
+                    y = pop(&p);
+                    x = pop(&p); // Caso não tenha 2 numeros, trazer erro?
+                    push(&p, x + y); // PODERIA ARMAZENAR ATÉ O NUMERO 1
+                    break;
+                case 2:
+                    y = pop(&p); // Operador unário
+                    push(&p, y + 1); // PODERIA ARMAZENAR ATÉ O NUMERO 1
+                    break;
+            }
+            i++;
+        }
     }
-
-	return 0;
+    x =  pop(&p);
+    
+    if (stack_isempty(p)) {
+        printf("Analise Sintática Correta\n\n");
+        return 0;
+    }
+    else {
+        printf("Analise Sintática Incorreta\n\n");
+        return 2;
+    }
 }
