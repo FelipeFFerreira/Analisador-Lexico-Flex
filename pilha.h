@@ -21,6 +21,8 @@ bool stack_isfull(pilha);
 
 void push(pilha *, stack_info);
 
-stack_info pop(pilha *);
+stack_info pop(pilha *, char * table_parser);
+
+stack_info top(pilha p);
 
 #endif

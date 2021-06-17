@@ -31,14 +31,23 @@ void push(pilha * p, stack_info x)
 	}
 }
 
-stack_info pop(pilha * p)
+stack_info pop(pilha * p, char * table_parser)
 {
 	if (!stack_isempty(*p)) {
 		return p->itens[p->topo--];
 	}
 	else {
-		printf("Analise Sintática Incorreta\n\n");
+		printf(" ---Recusado-V-\n\n>>[Analise Sintática Incorreta]\n\n");
 		exit(1);
 	}
 }
 
+stack_info top(pilha p)
+{
+	if (!stack_isempty(p)) {
+		return p.itens[p.topo];
+	}
+	else {
+		fprintf(stderr, "Pilha vazia!\n");
+	}
+}

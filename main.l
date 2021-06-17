@@ -36,8 +36,6 @@ char buffer_entrada[500]; // buffer utilizado para capturar entrada da expressã
 unsigned int buffer_saida[500], ptr_entrada = 0;
 bool STATE_ERROR = true;
 
-
-
 /* 
 * ** Utilizar essa área para criação de variaveis privadas **
 */
@@ -49,7 +47,7 @@ static int id_token;	 //variavel para controle dos tokens formados.
 * ** Prototipos de funcoes publicas **;
 */
 void print_token(char * buffer_entrada, char * msg, char * type_terminal); //prototipo de função para imprimir na tela um token reconhecido
-int aval_postfixa(const int * buffer_saida);
+int parser_postfixa(const int * buffer_saida);
 %}
 
 
@@ -212,18 +210,51 @@ static void processar_buffer(char * input)
 
 void print_buffer(unsigned int * bf)
 {
-
 	for (int i = 0; bf[i] != '$'; i++)
-		printf("%d. %d\n", i, bf[i]); 
+		printf("%d. %c\n", i, bf[i]); 
 }
 
-bool is_simbolo_terminal(char * simbolo)
-{
-	if (strcmp(simbolo, "terminal_digit") == 0)  buffer_saida[ptr_entrada++] =  TERMINAL_DIGIT;
-	else if (strcmp(simbolo, "terminal_op_binario") == 0) buffer_saida[ptr_entrada++]= TERMINAL_OP_BINARIO;
-	else if (strcmp(simbolo, "terminal_op_unario") == 0) buffer_saida[ptr_entrada++] = TERMINAL_OP_UNARIO;
-	else if (strcmp(simbolo, "invalid") == 0) STATE_ERROR = ERROR_LEXICO;
+bool is_simbolo_terminal(char * simbolo, char * token)
+{	
+	if (strcmp(simbolo, "invalid") == 0) {
+		STATE_ERROR = ERROR_LEXICO;
+		printf("%s\n", token);
+	}
+	else {
 
+		if (strcmp(simbolo, "terminal_digit") == 0) {
+			buffer_saida[ptr_entrada++] =  'd';
+		}
+		else if (strcmp(simbolo, "terminal_op_binario") == 0) {
+			if (strcmp(token, "+") == 0) {
+				buffer_saida[ptr_entrada++] = '+';
+			}
+			else if (strcmp(token, "-") == 0) {
+				buffer_saida[ptr_entrada++] = '-';
+			}
+			else if (strcmp(token, "*") == 0) {
+				buffer_saida[ptr_entrada++] = '*';
+			}
+			else if (strcmp(token, "/") == 0) {
+				buffer_saida[ptr_entrada++] = '/';
+			}
+			else if (strcmp(token, "^") == 0) {
+				buffer_saida[ptr_entrada++] = '^';
+			}
+		}	
+		else if (strcmp(simbolo, "terminal_op_unario") == 0) {
+			if (strcmp(token, "cos") == 0) {
+				buffer_saida[ptr_entrada++] = 'c';
+			}
+			else if (strcmp(token, "sen") == 0) {
+					buffer_saida[ptr_entrada++] = 's';
+			}
+			else if (strcmp(token, "log") == 0) {
+				buffer_saida[ptr_entrada++] = 'l';
+			}
+		}
+	}
+		
 	//printf("Simbolo : %s ;  Buffer[%d] = %d\n", simbolo, ptr_entrada, buffer_saida[ptr_entrada]);
 
 	buffer_saida[ptr_entrada] = '$';
@@ -238,18 +269,21 @@ bool is_simbolo_terminal(char * simbolo)
 */ 
 void print_token(char * buffer_entrada, char * msg, char * simbolo)
 {
-	int i;
-	
+	int i, k;
+	char token[100];	
 	printf("Token reconhecido: [ ");
-	for (i = 0; buffer_entrada[i] != '\0'; i++) {
-		if (!is_delimitador(buffer_entrada[i]))
+	for (i = 0, k = 0; buffer_entrada[i] != '\0'; i++) {
+		if (!is_delimitador(buffer_entrada[i])) {
 			printf("%c", buffer_entrada[i]);
-			
+			token[k++] = buffer_entrada[i];
+		}
+
 			//buffer_saida[ptr_entrada++] = '$';
 	}
+	token[k++] = '\0';
 	printf(" ]\tTipo do Token: [ %s ]\tidatrr: [ %d ]\n\n", msg, ++id_token);
 	
-	if (is_simbolo_terminal(simbolo));
+	if (is_simbolo_terminal(simbolo, token));
 }
 
 int main(int argc, char** argv) 
@@ -269,13 +303,13 @@ int main(int argc, char** argv)
 		if (!strcmp(input, "sair")) break;
 		
 		processar_buffer(input); 
-		//print_buffer(buffer_saida);
 
 		if (STATE_ERROR) {
-			printf("Lexico Correto\n\n");
-			aval_postfixa(buffer_saida);
+			printf(">>[Lexico Correto]\n\n");
+			print_buffer(buffer_saida);
+			parser_postfixa(buffer_saida);
 		} else {
-			printf("Lexico Incorreto\n\n");
+			printf(">>[Lexico Incorreto]\n\n");
 		}
 
 	}
@@ -283,40 +317,83 @@ int main(int argc, char** argv)
 }
 
 
-int aval_postfixa(const int * buffer_saida)
+int parser_postfixa(const int * first_postfix)
 {
     pilha p;
     int i = 0, x, y;
+    char table_parser[5][50] = {"E -> dF(+|-) | T", "T → dTF(*|/)| F", "F -> dE(sen|cos|exp|log)+ | d", "E->d"}; //substitui nos firsts simbolos de forma inversa na pilha
+
     stack_init(&p);
 
-    while (buffer_saida[i] != '$') {
-        if (buffer_saida[i] == 0) {
-            push(&p, 1);
+    while (first_postfix[i] != '$') {
+    	if (first_postfix[i] == 'd') {
+			printf("Aplica em: %s", table_parser[3]);
+            push(&p, first_postfix[i]);
+				printf(" --- Aceito\n\n");
             i++;
         }
         else {
-            switch(buffer_saida[i]) {
-                case 1:
-                    y = pop(&p);
-                    x = pop(&p); // Caso não tenha 2 numeros, trazer erro?
-                    push(&p, x + y); // PODERIA ARMAZENAR ATÉ O NUMERO 1
-                    break;
-                case 2:
-                    y = pop(&p); // Operador unário
-                    push(&p, y + 1); // PODERIA ARMAZENAR ATÉ O NUMERO 1
-                    break;
+            switch(first_postfix[i]) {
+				case '+':
+				case '-':
+					printf("Aplica em: %s", table_parser[0]);
+					y = pop(&p, table_parser[0]); // substitui e empilha
+					x = pop(&p, table_parser[0]); // segue por ET(+ | -)
+					push(&p, x + y); // empilha e segue T->(TF|/) 
+					printf(" --- Aceito\n\n");
+					break;
+				case '/':
+				case '*':
+				case '^':
+					printf("Aplica em: %s", table_parser[1]);
+					y = pop(&p, table_parser[1]); // substitui e empilha
+					x = pop(&p, table_parser[1]); // segue por ET(+ | -)
+					push(&p, x / y); // empilha e segue T->(TF|/) 
+					printf(" --- Aceito\n\n");
+					break;
+				case 'c': // cos
+				case 's': // sen
+				case 'l': // log
+					printf("Aplica em: %s", table_parser[2]);
+    				y = pop(&p, table_parser[2]); //Se nao, ultimo nivel de precedencia em F->E(sen|cos|exp|log)+";
+    				push(&p, y + 1); //substitui em (F)
+					printf(" --- Aceito\n\n");
+    				break;
             }
             i++;
         }
     }
-    x =  pop(&p);
+    x =  pop(&p, table_parser[3]);
     
     if (stack_isempty(p)) {
         printf("Analise Sintática Correta\n\n");
         return 0;
     }
     else {
-        printf("Analise Sintática Incorreta\n\n");
+        switch(x) {
+        	case 'd' :
+        		printf("Aplica em: %s", table_parser[3]);
+        		printf(" --- Recusado\n\n");
+        		break;
+    		case '+':
+			case '-':
+				printf("Aplica em: %s", table_parser[0]);
+				printf(" --- Recusado\n\n");
+			break;
+			case '/':
+			case '*':
+			case '^':
+				printf("Aplica em: %s", table_parser[1]);
+				printf(" --- Recusado\n\n");
+				break;
+			case 'c': // cos
+			case 's': // sen
+			case 'l': // log
+				printf("Aplica em: %s", table_parser[2]);
+				printf(" --- Recusado\n\n");
+        }
+        
+         printf(">>[Analise Sintática Incorreta]\n\n");
         return 2;
     }
 }
